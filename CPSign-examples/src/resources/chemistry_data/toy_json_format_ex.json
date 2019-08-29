@@ -1,0 +1,12 @@
+[
+      {
+         "cdk:Title" : "1728-95-6",
+         "Ames test categorisation" : "mutagen",
+         "smiles" : "C1(=C(C=2C=CC=CC2)N=C(N1)C3=CC=C(OC)C=C3)C=4C=CC=CC4"
+      },
+      {
+         "cdk:Title" : "91-08-7",
+         "Ames test categorisation" : "mutagen",
+         "smiles" : "C=1(C(=C(C=CC1)N=C=O)C)N=C=O"
+      }
+]
