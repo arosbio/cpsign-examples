@@ -24,6 +24,7 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
 
 import com.arosbio.auth.InvalidLicenseException;
+import com.arosbio.bloom.ColorGradient;
 import com.arosbio.chem.io.in.SDFile;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.MoleculeFigure;
@@ -50,7 +51,6 @@ import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.acp.ACPClassification;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
-import com.genettasoft.bloom.IColorGradient;
 
 import examples.utils.Config;
 import examples.utils.Utils;
@@ -100,7 +100,7 @@ public class GeneratePredictionImages {
 
 		// Init the Predictor
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)); 
 
 		// Wrap the predictor in Signatures-wrapper
@@ -272,7 +272,7 @@ public class GeneratePredictionImages {
 
 	}
 
-	private static BufferedImage drawGradient(int width, IColorGradient gradient) {
+	private static BufferedImage drawGradient(int width, ColorGradient gradient) {
 		BufferedImage image = new BufferedImage(width, 1, BufferedImage.TYPE_INT_ARGB);
 		for(int i=0;i<width;i++) {
 			double val = -1d + 2*((double)i)/width;

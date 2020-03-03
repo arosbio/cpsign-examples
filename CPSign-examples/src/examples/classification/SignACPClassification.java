@@ -3,6 +3,7 @@ package examples.classification;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -25,10 +26,11 @@ import com.arosbio.modeling.cheminf.SignaturesCPClassification;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.acp.ACPClassification;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.FoldedSampling;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -91,7 +93,8 @@ public class SignACPClassification {
 
 		// Chose your implementation of the ICP models (LibLinear or LibSVM)
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(
+						factory.createLibLinearClassification()), 
 				(Config.RUN_FOLDED_SAMPLING? 
 						new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS) : 
 							new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO))); 
@@ -159,7 +162,7 @@ public class SignACPClassification {
 	public void crossvalidate() throws IllegalAccessException, IllegalArgumentException, InvalidLicenseException, IOException {
 		// Chose your implementation of the ICP models (LibLinear or LibSVM)
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()), 
 				(Config.RUN_FOLDED_SAMPLING? 
 						new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS) : 
 							new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO))); 
@@ -173,9 +176,9 @@ public class SignACPClassification {
 				new NamedLabels(Config.CLASSIFICATION_LABELS));
 
 		//Do cross-validation with NUM_FOLDS_CV folds
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		cv.setConfidence(Config.CV_CONFIDENCE);
-		List<Metric> result = cv.evaluate(signACP);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
+		tester.setEvaluationPoints(Arrays.asList(Config.CV_CONFIDENCE));
+		List<Metric> result = tester.evaluate(signACP);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds and confidence "+ Config.CV_CONFIDENCE +": ");
 		for (Metric met: result)
 			System.out.println(met.toString());			

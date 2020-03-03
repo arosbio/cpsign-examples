@@ -3,6 +3,7 @@ package examples.classification;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -24,9 +25,10 @@ import com.arosbio.modeling.cheminf.NamedLabels;
 import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.FoldedSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 import com.arosbio.modeling.ml.vap.avap.AVAPClassification;
 
 import ch.qos.logback.classic.Level;
@@ -167,9 +169,9 @@ public class SignVAPClassification {
 				new NamedLabels(Config.CLASSIFICATION_LABELS));
 
 		// Run CV
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		cv.setConfidence(Config.CV_CONFIDENCE);
-		List<Metric> result = cv.evaluate(signPredictor);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
+		tester.setEvaluationPoints(Arrays.asList(Config.CV_CONFIDENCE));
+		List<Metric> result = tester.evaluate(signPredictor);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds and confidence "+ Config.CV_CONFIDENCE +": ");
 		for (Metric met: result)
 			System.out.println(met.toString());

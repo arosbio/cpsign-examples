@@ -17,12 +17,14 @@ import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.SignaturesCPRegression;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cp.CPRegressionResult;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction.PredictedInterval;
 import com.arosbio.modeling.ml.cp.acp.ACPRegression;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.FoldedSampling;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 
 import examples.utils.Config;
 import examples.utils.Utils;
@@ -74,7 +76,7 @@ public class SignACPRegression {
 
 		// Chose your implementation of the ICP models (LibLinear or LibSVM)
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createLibLinearRegression(), 
+				factory.createAbsDifferenceNCM(factory.createLibLinearRegression()), 
 				(Config.RUN_FOLDED_SAMPLING? 
 						new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS) : 
 							new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)));
@@ -111,14 +113,14 @@ public class SignACPRegression {
 
 		// Predict a new example
 		IAtomContainer testMol = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.TEST_SMILES);
-		List<CPRegressionResult> regResult= signACP.predict(testMol, Arrays.asList(0.5, 0.7, 0.9));
-		for(CPRegressionResult res: regResult){
+		CPRegressionPrediction regResult= signACP.predict(testMol, Arrays.asList(0.5, 0.7, 0.9));
+		for(PredictedInterval res: regResult.getIntervals().values()){
 			System.out.println("Confidence: " + res.getConfidence() + ", value: " + res.getInterval());
 		}
 
 		//Predict interval specified as distance to predicted value
-		List<CPRegressionResult> distanceResult = signACP.predictDistances(testMol, Arrays.asList(0.001));
-		System.out.println("Distance prediction: " + distanceResult.get(0));
+		CPRegressionPrediction distanceResult = signACP.predictDistances(testMol, Arrays.asList(0.001));
+		System.out.println("Distance prediction: " + distanceResult.getDistanceBasedIntervals().values().iterator().next());
 
 		// Predict the SignificantSignature
 		SignificantSignature ss = signACP.predictSignificantSignature(testMol);
@@ -128,7 +130,7 @@ public class SignACPRegression {
 	public void crossvalidate() throws IllegalAccessException, IllegalArgumentException, InvalidLicenseException, IOException {
 		// Chose your implementation of the ICP models (LibLinear or LibSVM)
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createLibLinearRegression(), 
+				factory.createAbsDifferenceNCM(factory.createLibLinearRegression()), 
 				(Config.RUN_FOLDED_SAMPLING? 
 						new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS) : 
 							new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)));
@@ -142,9 +144,8 @@ public class SignACPRegression {
 				Config.REGRESSION_ENDPOINT);
 
 		//Do cross-validation with NUM_FOLDS_CV folds
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		cv.setConfidence(Config.CV_CONFIDENCE);
-		List<Metric> result = cv.evaluate(signPredictor);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV),Arrays.asList(Config.CV_CONFIDENCE));
+		List<Metric> result = tester.evaluate(signPredictor);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds and confidence "+ Config.CV_CONFIDENCE +": ");
 		for (Metric met: result)
 			System.out.println(met.toString());

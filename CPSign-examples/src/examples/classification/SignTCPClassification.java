@@ -64,7 +64,8 @@ public class SignTCPClassification {
 	public void predict() throws IllegalAccessException, IllegalArgumentException, InvalidLicenseException, IOException, CDKException {
 
 		// Init TCP and chose the scoring implementation
-		TCPClassification predictor = factory.createTCPClassification(factory.createLibLinearClassification());
+		TCPClassification predictor = factory.createTCPClassification(
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()));
 
 		// Wrap the predictor in a Signatures-wrapper
 		SignaturesCPClassification signPredictor = factory.createSignaturesCPClassification(predictor, 1, 3);

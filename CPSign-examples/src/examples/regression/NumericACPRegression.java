@@ -13,12 +13,14 @@ import com.arosbio.modeling.data.Problem;
 import com.arosbio.modeling.data.SparseFeature;
 import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cp.CPRegressionResult;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction.PredictedInterval;
 import com.arosbio.modeling.ml.cp.acp.ACPRegression;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.FoldedSampling;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 
 import examples.utils.Config;
 import examples.utils.Utils;
@@ -69,7 +71,7 @@ public class NumericACPRegression {
 
 		// Chose your predictor and scoring algorithm
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createLibLinearRegression(),  // or use factory.createLibSvmRegression()
+				factory.createAbsDifferenceNCM(factory.createLibLinearRegression()),  // or use factory.createLibSvmRegression()
 				new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS)); // Folded -> CCP, Random -> ACP
 
 		// Load sparse data
@@ -101,13 +103,13 @@ public class NumericACPRegression {
 		// or CPSignFactory.getSparseVector(new double[]{1, 3.5, 4.1, 21.3, 64.4});
 		// or CPSignFactory.getSparseVector(new int[]{1, 5, 10, 11}, new double[] {3.4, 12.2, 12.3, 5});
 
-		List<CPRegressionResult> regResult = predictor.predict(example, Arrays.asList(0.5, 0.7, 0.9));
-		for (CPRegressionResult res: regResult) {
+		CPRegressionPrediction regResult = predictor.predict(example, Arrays.asList(0.5, 0.7, 0.9));
+		for (PredictedInterval res: regResult.getIntervals().values()) {
 			System.out.println("Confidence: " + res.getConfidence() + ", value: " + res.getInterval());
 		}
 
 		//Predict interval specified as distance to predicted value
-		CPRegressionResult distanceResult = predictor.predictDistances(example, Arrays.asList(1.5)).get(0);
+		CPRegressionPrediction distanceResult = predictor.predictDistances(example, Arrays.asList(1.5));
 		System.out.println("Distance prediction: " + distanceResult);
 
 	}
@@ -115,15 +117,16 @@ public class NumericACPRegression {
 	public void crossvalidate() throws MalformedURLException, IOException {
 		// Chose your predictor and scoring algorithm
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createLibLinearRegression(),
+				factory.createAbsDifferenceNCM(factory.createLibLinearRegression()),
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
 
 		// Load data 
 		Problem data = Problem.fromSparseFile(Config.NUMERICAL_REGRESSION_DATASET.toURL().openStream());
 
 		//Do cross-validation with NUM_FOLDS_CV folds
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		List<Metric> result = cv.evaluate(data,predictor);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
+		tester.setEvaluationPoints(Arrays.asList(Config.CV_CONFIDENCE));
+		List<Metric> result = tester.evaluate(data,predictor);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds and confidence "+ Config.CV_CONFIDENCE +": ");
 		for (Metric met: result)
 			System.out.println(met.toString());

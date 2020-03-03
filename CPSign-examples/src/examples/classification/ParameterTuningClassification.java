@@ -1,9 +1,10 @@
 package examples.classification;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.naming.CannotProceedException;
 
@@ -12,15 +13,18 @@ import com.arosbio.chem.io.in.SDFile;
 import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.NamedLabels;
 import com.arosbio.modeling.cheminf.SignaturesCPClassification;
-import com.arosbio.modeling.gridsearch.GridSearch;
-import com.arosbio.modeling.gridsearch.GridSearch.OptimizationType;
-import com.arosbio.modeling.gridsearch.GridSearch.ParameterRange;
-import com.arosbio.modeling.gridsearch.GridSearchException;
-import com.arosbio.modeling.gridsearch.GridSearchResult;
 import com.arosbio.modeling.ml.cp.acp.ACPClassification;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
+import com.arosbio.modeling.ml.gridsearch.GridSearch;
+import com.arosbio.modeling.ml.gridsearch.GridSearch.GSResult;
+import com.arosbio.modeling.ml.gridsearch.GridSearchException;
+import com.arosbio.modeling.ml.gridsearch.GridSearchResult;
+import com.arosbio.modeling.ml.interfaces.Tunable.TunableParameter;
+import com.arosbio.modeling.ml.metrics.ObservedFuzziness;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
 
 import examples.utils.Config;
+import examples.utils.SysOutWriter;
 import examples.utils.Utils;
 
 public class ParameterTuningClassification {
@@ -31,6 +35,7 @@ public class ParameterTuningClassification {
 	public static void main(String[] args) throws CannotProceedException, IllegalArgumentException, IllegalAccessException, IOException, GridSearchException {
 		ParameterTuningClassification acp = new ParameterTuningClassification();
 		acp.intialise();
+		acp.listAvailableParameters();
 		acp.tuneParameters();
 		System.out.println("Finished Example Tune Parameters");
 	}
@@ -47,21 +52,34 @@ public class ParameterTuningClassification {
 		factory = Utils.getFactory();
 	}
 
+	public void listAvailableParameters() {
+		// Chose your predictor, NCM and scoring algorithm
+		ACPClassification predictor = factory.createACPClassification(
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()), 
+				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
+		List<TunableParameter> params = predictor.getTunableParameters();
+		System.out.println("Possible parameters to gridsearch for ACP Classification");
+		for (TunableParameter p : params) {
+			System.out.println(p);
+		}
+	}
+
 
 	public void tuneParameters() throws IllegalArgumentException, IllegalAccessException, IOException, InvalidLicenseException, GridSearchException {
 		// Create a GridSearch object 
-		GridSearch gs = new GridSearch(Config.NUM_FOLDS_CV, Config.CV_CONFIDENCE, Config.CV_TOLERANCE);
+		GridSearch gs = new GridSearch(new KFoldCVSplitter(Config.NUM_FOLDS_CV), Config.CV_CONFIDENCE, Config.CV_TOLERANCE);
 		// Set your custom parameter regions
-		gs.setC(new ParameterRange(Arrays.asList(1., 10., 100.))); 
+		Map<String,List<Object>> paramGrid = new HashMap<>();
+		paramGrid.put("COST", Arrays.asList(1, 10, 100)); 
 
 		// Set a Writer to write all output to (otherwise only give you the optimal result)
-		Writer writer = new OutputStreamWriter(System.out);
-		gs.setWriter(writer);
+		// Here simply write to system out
+		gs.setLoggingWriter(new SysOutWriter());
 
 
-		// Chose your predictor and scoring algorithm
+		// Chose your predictor, NCM and scoring algorithm
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)); 
 
 		// Wrap the predictor in Signatures-wrapper
@@ -72,10 +90,19 @@ public class ParameterTuningClassification {
 				Config.CLASSIFICATION_ENDPOINT, 
 				new NamedLabels(Config.CLASSIFICATION_LABELS));
 
-		// Start the Grid Search
-		GridSearchResult res = gs.classification(signPredictor, OptimizationType.EFFICIENCY);
-		gs.classification(signPredictor.getProblem(), predictor, OptimizationType.EFFICIENCY);
+		// Start the Grid Search, use the proportion of multi-label prediction 
+		// sets as optimization metric (at a given confidence)
+		GridSearchResult res = gs.search(signPredictor,
+				new ObservedFuzziness(),
+//				new ProportionMultiLabelPredictions(Config.CV_CONFIDENCE),
+				paramGrid); 
+		
 		System.out.println(res);
+		
+		// The best "n" (definable) results are available to check afterwards - sorted with the best one first
+		for (GSResult r : res.getBestParameters()) {
+			System.out.println(r + " params: " + r.getParams());
+		}
 	}
 
 

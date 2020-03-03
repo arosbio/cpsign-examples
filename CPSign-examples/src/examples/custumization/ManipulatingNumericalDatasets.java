@@ -156,7 +156,9 @@ public class ManipulatingNumericalDatasets {
 		Problem testProblem = acpReg.getProblem().clone();
 
 		// now we have two Problems, one for training and one for testing
-		ACPClassification impl = factory.createACPClassification(factory.createLibLinearClassification(), new RandomSampling(10, 0.2));
+		ACPClassification impl = factory.createACPClassification(
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification()), 
+				new RandomSampling(10, 0.2));
 		impl.train(generatedProblem);
 
 		// predict the first 10 molecules 

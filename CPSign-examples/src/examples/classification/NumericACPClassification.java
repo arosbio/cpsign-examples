@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,9 +15,10 @@ import com.arosbio.modeling.data.SparseFeature;
 import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.acp.ACPClassification;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 
 import examples.utils.Config;
 import examples.utils.Utils;
@@ -66,7 +68,8 @@ public class NumericACPClassification {
 
 		// Chose your predictor and scoring algorithm
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(
+				factory.createLibLinearClassification()), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
 
 		Problem data = Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
@@ -108,16 +111,18 @@ public class NumericACPClassification {
 	public void crossvalidate() throws MalformedURLException, IOException {
 		// Chose your predictor and scoring algorithm
 		ACPClassification predictor = factory.createACPClassification(
-				factory.createLibLinearClassification(), 
+				factory.createNegativeDistanceToHyperplaneNCM(
+				factory.createLibLinearClassification()), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)); 
 
 		// Load data (do not have to load data separately for cross-validate and train/predict-part!)
 		Problem data = Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
 		
 		// Do CV
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		cv.setConfidence(Config.CV_CONFIDENCE);
-		List<Metric> result = cv.evaluate(data, predictor);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
+//		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
+		tester.setEvaluationPoints(Arrays.asList(Config.CV_CONFIDENCE));
+		List<Metric> result = tester.evaluate(data, predictor);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV + " folds and confidence " + Config.CV_CONFIDENCE +":");
 		for (Metric met: result)
 			System.out.println(met.toString());

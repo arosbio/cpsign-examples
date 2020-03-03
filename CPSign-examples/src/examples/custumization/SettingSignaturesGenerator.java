@@ -20,7 +20,7 @@ import com.arosbio.modeling.cheminf.SignaturesCPRegression;
 import com.arosbio.modeling.cheminf.signatures.SignaturesGenerator;
 import com.arosbio.modeling.cheminf.signatures.SignaturesGeneratorStandard;
 import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cp.CPRegressionResult;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
 import com.arosbio.modeling.ml.cp.acp.ACPRegression;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 
@@ -70,7 +70,7 @@ public class SettingSignaturesGenerator {
 
 		// Chose your predictor and scoring algorithm
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createLibLinearRegression(), 
+				factory.createLogNormalizedNCM(factory.createLibLinearRegression(), null, 0.1), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
 
 		// Wrap the predictor in Signatures-wrapper
@@ -137,10 +137,11 @@ public class SettingSignaturesGenerator {
 		// Predict a new example
 			IAtomContainer testMol = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.TEST_SMILES);
 			List<Double> confidences = Arrays.asList(0.5, 0.7, 0.9);
-			List<CPRegressionResult> regResult = predictor.predict(testMol, confidences);
+			CPRegressionPrediction regResult = predictor.predict(testMol, confidences);
 
-			for (int i=0; i<confidences.size(); i++){
-				System.out.println("Confidence: " + regResult.get(i).getConfidence() + ", interval (normal): " + regResult.get(i).getInterval());
+			for (double conf : confidences){
+				System.out.println("Confidence: " + conf + 
+						", interval (normal): " + regResult.getIntervals().get(conf).getInterval());
 			}
 
 	}

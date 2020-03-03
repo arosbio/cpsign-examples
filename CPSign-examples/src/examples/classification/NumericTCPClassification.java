@@ -49,7 +49,8 @@ public class NumericTCPClassification {
 	public void predictWithTCPClassification() throws IllegalArgumentException, InvalidLicenseException, MalformedURLException, IOException, IllegalAccessException {
 
 		// Init TCP and chose the scoring implementation
-		TCPClassification tcpImpl = factory.createTCPClassification(factory.createLibLinearClassification()); 
+		TCPClassification tcpImpl = factory.createTCPClassification(
+				factory.createNegativeDistanceToHyperplaneNCM(factory.createLibLinearClassification())); 
 
 		// Load data from Sparse file (.svm format) and "train" the TCP 
 		tcpImpl.train(Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream()));

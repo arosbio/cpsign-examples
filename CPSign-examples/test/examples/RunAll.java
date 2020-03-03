@@ -23,7 +23,6 @@ import examples.custumization.SettingSignaturesGenerator;
 import examples.io.GeneratePredictionImages;
 import examples.regression.NumericACPRegression;
 import examples.regression.ParameterTuningRegression;
-import examples.regression.RegressionChangeNonconformityScore;
 import examples.regression.SignACPRegression;
 
 public class RunAll {
@@ -55,7 +54,6 @@ public class RunAll {
 			// Regression
 			NumericACPRegression.class,
 			ParameterTuningRegression.class,
-			RegressionChangeNonconformityScore.class,
 			SignACPRegression.class
 			
 			);

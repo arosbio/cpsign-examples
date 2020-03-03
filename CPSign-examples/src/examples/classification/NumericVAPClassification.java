@@ -14,9 +14,10 @@ import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.algorithms.LibLinear;
 import com.arosbio.modeling.ml.algorithms.params.LibLinearParameters;
-import com.arosbio.modeling.ml.cv.KFoldCV;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.metrics.Metric;
+import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
+import com.arosbio.modeling.ml.testing.TestRunner;
 import com.arosbio.modeling.ml.vap.avap.AVAPClassification;
 import com.arosbio.modeling.ml.vap.avap.AVAPClassificationResult;
 
@@ -123,8 +124,8 @@ public class NumericVAPClassification {
 		Problem data = Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
 
 		// Do CV
-		KFoldCV cv = new KFoldCV(Config.NUM_FOLDS_CV);
-		List<Metric> result = cv.evaluate(data, predictor);
+		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
+		List<Metric> result = tester.evaluate(data, predictor);
 		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds: " + result);
 	}
 
