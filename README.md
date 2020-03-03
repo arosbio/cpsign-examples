@@ -8,7 +8,7 @@ This repo is meant to serve as a basics for how to get up and running with **CPS
 ## How to set it up ##
 
 ### 1. Download CPSign Jar-file
-Currently the only way to get CPSign is to contact Aros Bio, a download page will come shortly. The CPSign Jar also comes with a separate jar-file with JavaDoc for getting in-editor help, setting this up in your favorit IDE should be easy (see [Setting up JavaDoc with Eclipse](https://arosbio.com/cpsign/docs/latest/sections/javadoc_setup.html)).
+Currently the only way to get CPSign is to contact Aros Bio, a download page will come shortly. The CPSign Jar also comes with a separate jar-file with JavaDoc for getting in-editor help, setting this up in your favorit IDE should be easy (see [Setting up JavaDoc with Eclipse](https://arosbio.com/cpsign/docs/latest/sections/javadoc/javadoc_setup.html)).
 
 ### 2. Get your license
 Contact Aros Bio to get your license, see more information at the [CPSign Documentation](https://arosbio.com/cpsign/docs/latest/sections/license.html).
