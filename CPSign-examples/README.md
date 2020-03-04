@@ -3,12 +3,13 @@
 This repo is meant to serve as a basics for how to get up and running with **CPSign** using the API.
 
 ## Current supported versions ##
-- 1.0.0 : Tag v1.0.0, Master branch
+- 1.2.0 : Tag v1.2.0, Master branch
+- 1.0.0 : Tag v1.0.0
 
 ## How to set it up ##
 
 ### 1. Download CPSign Jar-file
-Currently the only way to get CPSign is to contact Aros Bio, a download page will come shortly. The CPSign Jar also comes with a separate jar-file with JavaDoc for getting in-editor help, setting this up in your favorit IDE should be easy (see [Setting up JavaDoc with Eclipse](https://arosbio.com/cpsign/docs/latest/sections/javadoc/javadoc_setup.html)).
+Current and old versions are available at [CPSign Downloads](https://arosbio.com/cpsign/download/).
 
 ### 2. Get your license
 Contact Aros Bio to get your license, see more information at the [CPSign Documentation](https://arosbio.com/cpsign/docs/latest/sections/license.html).
