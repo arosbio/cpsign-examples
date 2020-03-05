@@ -109,7 +109,7 @@ public class NumericACPRegression {
 		}
 
 		//Predict interval specified as distance to predicted value
-		CPRegressionPrediction distanceResult = predictor.predictDistances(example, Arrays.asList(1.5));
+		CPRegressionPrediction distanceResult = predictor.predictConfidence(example, Arrays.asList(1.5));
 		System.out.println("Distance prediction: " + distanceResult);
 
 	}

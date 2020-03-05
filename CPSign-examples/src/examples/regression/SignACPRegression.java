@@ -119,7 +119,7 @@ public class SignACPRegression {
 		}
 
 		//Predict interval specified as distance to predicted value
-		CPRegressionPrediction distanceResult = signACP.predictDistances(testMol, Arrays.asList(0.001));
+		CPRegressionPrediction distanceResult = signACP.predictConfidence(testMol, Arrays.asList(0.001));
 		System.out.println("Distance prediction: " + distanceResult.getDistanceBasedIntervals().values().iterator().next());
 
 		// Predict the SignificantSignature

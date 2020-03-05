@@ -81,7 +81,7 @@ public class NumericVAPClassification {
 			predictor.setModelInfo(new ModelInfo("CVAP Classification")); // Minimum info is to set the model name
 			predictor.save(tempModel);
 
-		} catch(IllegalAccessException e){
+		} catch(IllegalStateException e){
 			// License not supporting training functionality 
 			Utils.writeErrAndExit(e.getMessage());
 		} catch (IOException e){
