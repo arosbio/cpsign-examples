@@ -18,7 +18,7 @@ import com.arosbio.modeling.ml.gridsearch.GridSearch;
 import com.arosbio.modeling.ml.gridsearch.GridSearch.GSResult;
 import com.arosbio.modeling.ml.gridsearch.GridSearchException;
 import com.arosbio.modeling.ml.gridsearch.GridSearchResult;
-import com.arosbio.modeling.ml.interfaces.Tunable.TunableParameter;
+import com.arosbio.modeling.ml.interfaces.Configurable.ConfigParameter;
 import com.arosbio.modeling.ml.metrics.MedianPredictionIntervalWidth;
 import com.arosbio.modeling.ml.testing.KFoldCVSplitter;
 
@@ -58,9 +58,9 @@ public class ParameterTuningRegression {
 		ACPRegression predictor = factory.createACPRegression(
 				factory.createAbsDifferenceNCM(factory.createLibLinearRegression()), 
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
-		List<TunableParameter> params = predictor.getTunableParameters();
+		List<ConfigParameter> params = predictor.getConfigParameters();
 		System.out.println("Possible parameters to gridsearch for ACP Regression");
-		for (TunableParameter p : params) {
+		for (ConfigParameter p : params) {
 			System.out.println(p);
 		}
 	}

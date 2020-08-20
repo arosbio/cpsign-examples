@@ -172,7 +172,7 @@ public class SignVAPClassification {
 		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
 		tester.setEvaluationPoints(Arrays.asList(Config.CV_CONFIDENCE));
 		List<Metric> result = tester.evaluate(signPredictor);
-		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds and confidence "+ Config.CV_CONFIDENCE +": ");
+		System.out.println("Cross-validation with " + Config.NUM_FOLDS_CV +" folds" + ": ");
 		for (Metric met: result)
 			System.out.println(met.toString());
 

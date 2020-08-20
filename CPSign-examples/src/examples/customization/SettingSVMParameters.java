@@ -1,4 +1,4 @@
-package examples.custumization;
+package examples.customization;
 
 import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.ml.algorithms.LibLinear;

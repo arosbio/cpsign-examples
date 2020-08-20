@@ -8,8 +8,10 @@ import java.util.List;
 
 import com.arosbio.auth.InvalidLicenseException;
 import com.arosbio.modeling.CPSignFactory;
+import com.arosbio.modeling.data.FeatureVector;
 import com.arosbio.modeling.data.Problem;
 import com.arosbio.modeling.data.SparseFeature;
+import com.arosbio.modeling.data.SparseVector;
 import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.algorithms.LibLinear;
@@ -72,7 +74,7 @@ public class NumericVAPClassification {
 
 		// Load sparse data
 		try{
-			Problem data = Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
+			Problem data = Problem.fromLIBSVMFormat(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
 
 			// Train the aggregated 
 			predictor.train(data);
@@ -108,8 +110,9 @@ public class NumericVAPClassification {
 		List<SparseFeature> example = CPSignFactory.getSparseVector("1:0.44 3:0.88 5:0.44 6:1.32 18:0.44 19:1.76 21:2.2 23:2.2 49:0.222 52:0.444 53:0.37 55:2.413 56:16 57:140");
 		// or CPSignFactory.getSparseVector(new double[]{1, 3.5, 4.1, 21.3, 64.4});
 		// or CPSignFactory.getSparseVector(new int[]{1, 5, 10, 11}, new double[] {3.4, 12.2, 12.3, 5});
+		FeatureVector v = new SparseVector(example);
 
-		AVAPClassificationResult result = predictor.predict(example);
+		AVAPClassificationResult result = predictor.predict(v);
 		System.out.println("Prediction: "+result);
 
 	}
@@ -121,7 +124,7 @@ public class NumericVAPClassification {
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO)); 
 
 		// Load data (do not have to load data separately for cross-validate and train/predict-part!)
-		Problem data = Problem.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
+		Problem data = Problem.fromLIBSVMFormat(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
 
 		// Do CV
 		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));

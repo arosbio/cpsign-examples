@@ -1,4 +1,4 @@
-package examples.custumization;
+package examples.customization;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,11 +84,6 @@ public class ExtendCLI {
 			return "Custom";
 		}
 
-		@Override
-		public boolean hasUsageBeenTriggered() {
-			// This can be ignored, only has implications for cpsign internal code
-			return false;
-		}
 	}
 
 }

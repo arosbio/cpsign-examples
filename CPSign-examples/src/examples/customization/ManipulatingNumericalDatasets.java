@@ -1,4 +1,4 @@
-package examples.custumization;
+package examples.customization;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +16,7 @@ import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.NamedLabels;
 import com.arosbio.modeling.cheminf.SignaturesCPClassification;
 import com.arosbio.modeling.cheminf.SignaturesCPRegression;
+import com.arosbio.modeling.cheminf.descriptors.Descriptor;
 import com.arosbio.modeling.data.Dataset;
 import com.arosbio.modeling.data.Problem;
 import com.arosbio.modeling.ml.cp.acp.ACPClassification;
@@ -61,7 +62,7 @@ public class ManipulatingNumericalDatasets {
 
 	public void loadProblem() throws IOException {
 		// A Problem can be loaded easily without the need for the factory
-		dataset = Dataset.fromSparseFile(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
+		dataset = Dataset.fromLIBSVMFormat(Config.NUMERICAL_CLASSIFICATION_DATASET.toURL().openStream());
 
 		System.out.println("Original dataset size: " + dataset.size());
 	}
@@ -114,10 +115,10 @@ public class ManipulatingNumericalDatasets {
 		EncryptionSpecification spec = encryptionFactory.getEncryptionSpec();
 
 		// Write encrypted file
-		dataset.writeRecordsToStream(new FileOutputStream(encryptedFile), spec);
+		dataset.writeRecords(new FileOutputStream(encryptedFile), spec);
 
 		// Load the Problem back
-		Dataset fromEncryptedFile = Dataset.fromSparseFile(new FileInputStream(encryptedFile), spec);
+		Dataset fromEncryptedFile = Dataset.fromLIBSVMFormat(new FileInputStream(encryptedFile), spec);
 
 		System.out.println("Dataset re-loaded from encrypted file");
 
@@ -145,10 +146,10 @@ public class ManipulatingNumericalDatasets {
 
 		// Now we need some data to test with! Generate it from the other ChemFile
 
-		List<String> signatures = signACP.getProblem().getSignatures(); 
+		List<Descriptor> descriptors = signACP.getProblem().getDescriptors(); 
 
 		SignaturesCPRegression acpReg = factory.createSignaturesCPRegression(null, 1, 3); // we dont need the ACP-implementation!
-		acpReg.getProblem().setSignatures(signatures); // use the previous signatures
+		acpReg.getProblem().setDescriptors(descriptors); // use the previous descriptors 
 
 		acpReg.fromMolsIterator(new SDFile(Config.REGRESSION_DATASET).getIterator(), 
 				Config.REGRESSION_ENDPOINT);

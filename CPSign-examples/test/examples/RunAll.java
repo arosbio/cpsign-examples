@@ -16,10 +16,10 @@ import examples.classification.ParameterTuningClassification;
 import examples.classification.SignACPClassification;
 import examples.classification.SignTCPClassification;
 import examples.classification.SignVAPClassification;
-import examples.custumization.ExtendCLI;
-import examples.custumization.ManipulatingNumericalDatasets;
-import examples.custumization.SettingSVMParameters;
-import examples.custumization.SettingSignaturesGenerator;
+import examples.customization.ExtendCLI;
+import examples.customization.ManipulatingNumericalDatasets;
+import examples.customization.SettingDescriptors;
+import examples.customization.SettingSVMParameters;
 import examples.io.GeneratePredictionImages;
 import examples.regression.NumericACPRegression;
 import examples.regression.ParameterTuningRegression;
@@ -44,7 +44,7 @@ public class RunAll {
 			// Custom
 //			ExtendCLI.class,
 			ManipulatingNumericalDatasets.class,
-			SettingSignaturesGenerator.class,
+			SettingDescriptors.class,
 			SettingSVMParameters.class,
 			
 			// IO

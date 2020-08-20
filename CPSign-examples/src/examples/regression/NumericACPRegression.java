@@ -9,8 +9,10 @@ import java.util.List;
 
 import com.arosbio.auth.InvalidLicenseException;
 import com.arosbio.modeling.CPSignFactory;
+import com.arosbio.modeling.data.FeatureVector;
 import com.arosbio.modeling.data.Problem;
 import com.arosbio.modeling.data.SparseFeature;
+import com.arosbio.modeling.data.SparseVector;
 import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
@@ -75,7 +77,7 @@ public class NumericACPRegression {
 				new FoldedSampling(Config.NUM_OF_AGGREGATED_MODELS)); // Folded -> CCP, Random -> ACP
 
 		// Load sparse data
-		Problem data = Problem.fromSparseFile(Config.NUMERICAL_REGRESSION_DATASET.toURL().openStream());
+		Problem data = Problem.fromLIBSVMFormat(Config.NUMERICAL_REGRESSION_DATASET.toURL().openStream());
 
 		// Train the aggregated ICPs
 		predictor.train(data);
@@ -102,14 +104,18 @@ public class NumericACPRegression {
 		List<SparseFeature> example = CPSignFactory.getSparseVector("1:-1 2:-0.64 3:-0.86437 4:-1 5:-0.37037 6:0.155011 7:0.283213 8:-0.461594 9:-1 10:-0.583969 11:-0.425532 12:1 13:-0.82064");
 		// or CPSignFactory.getSparseVector(new double[]{1, 3.5, 4.1, 21.3, 64.4});
 		// or CPSignFactory.getSparseVector(new int[]{1, 5, 10, 11}, new double[] {3.4, 12.2, 12.3, 5});
+		
+		// Convert to a FeatureVector
+		FeatureVector v = new SparseVector(example);
+				
 
-		CPRegressionPrediction regResult = predictor.predict(example, Arrays.asList(0.5, 0.7, 0.9));
+		CPRegressionPrediction regResult = predictor.predict(v, Arrays.asList(0.5, 0.7, 0.9));
 		for (PredictedInterval res: regResult.getIntervals().values()) {
 			System.out.println("Confidence: " + res.getConfidence() + ", value: " + res.getInterval());
 		}
 
 		//Predict interval specified as distance to predicted value
-		CPRegressionPrediction distanceResult = predictor.predictConfidence(example, Arrays.asList(1.5));
+		CPRegressionPrediction distanceResult = predictor.predictConfidence(v, Arrays.asList(1.5));
 		System.out.println("Distance prediction: " + distanceResult);
 
 	}
@@ -121,7 +127,7 @@ public class NumericACPRegression {
 				new RandomSampling(Config.NUM_OF_AGGREGATED_MODELS, Config.CALIBRATION_RATIO));
 
 		// Load data 
-		Problem data = Problem.fromSparseFile(Config.NUMERICAL_REGRESSION_DATASET.toURL().openStream());
+		Problem data = Problem.fromLIBSVMFormat(Config.NUMERICAL_REGRESSION_DATASET.toURL().openStream());
 
 		//Do cross-validation with NUM_FOLDS_CV folds
 		TestRunner tester = new TestRunner(new KFoldCVSplitter(Config.NUM_FOLDS_CV));
