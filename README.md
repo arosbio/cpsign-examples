@@ -3,7 +3,8 @@
 This repo is meant to serve as a basics for how to get up and running with **CPSign** using the API.
 
 ## Current supported versions ##
-- 1.2.0 : Tag v1.2.0, Master branch
+- 1.4.1 : Tag v1.4.1, HEAD of Master branch
+- 1.2.0 : Tag v1.2.0
 - 1.0.0 : Tag v1.0.0
 
 ## How to set it up ##
