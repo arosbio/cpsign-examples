@@ -80,6 +80,12 @@ public class SettingDescriptors {
 
 		// Use a set of CDK descriptors instead
 		List<Descriptor> desc = DescriptorFactory.getInstance().getDescriptorsList().subList(3, 10);
+		
+		/* Note that when using other descriptors apart from the Signatures Descriptor
+		 * it is recommended to both check for missing features (e.g. if cdk failed to compute some descriptors)
+		 * and to scale features - and possibly add a feature-selection 
+		 */
+		
 
 		// set this list - or implement your own descriptor if you like!
 		signPredictor.getProblem().setDescriptors(desc);
