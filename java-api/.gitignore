@@ -1,0 +1,4 @@
+/bin/
+**.jar
+cpsign*.log
+output/
