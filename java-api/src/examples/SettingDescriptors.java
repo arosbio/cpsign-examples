@@ -23,6 +23,11 @@ import utils.Config;
 
 public class SettingDescriptors extends BaseTest {
 
+	/*
+	 * Note: this tests (for this particular data set) takes roughly 8-10 minutes to run
+	 * as it requires CDK descriptors that are time consuming to compute. In real world scenarios,
+	 * put some effort into picking the appropriate descriptors 
+	 */
 	@Test
 	public void descriptors() throws Exception {
 
@@ -43,16 +48,13 @@ public class SettingDescriptors extends BaseTest {
 
 		// Use a set of CDK descriptors instead
 		List<Descriptor> desc = DescriptorFactory.getInstance().getCDKDescriptorsNo3D().subList(0, 10);
-
+		signPredictor.getProblem().setDescriptors(desc);
+		
 		/* 
 		 * Note that when using other descriptors apart from the Signatures Descriptor
 		 * it is recommended to both check for missing features (e.g. if cdk failed to compute some descriptors)
 		 * and to scale features - and possibly add feature-selection 
 		 */
-
-
-		// set this list - or implement your own descriptor if you like!
-		signPredictor.getProblem().setDescriptors(desc);
 
 		// Load data, train and save model
 		signPredictor.fromMolsIterator(new SDFile(Config.getURI("regression.dataset", null)).getIterator(), 
@@ -62,7 +64,7 @@ public class SettingDescriptors extends BaseTest {
 		signPredictor.train();
 
 		// Save models to skip train again
-		File tmpModel = File.createTempFile("hergModels.liblinear.", ".cpsign");
+		File tmpModel = File.createTempFile("regression-model", ".jar");
 		tmpModel.deleteOnExit();
 		signPredictor.save(tmpModel);
 
@@ -76,7 +78,8 @@ public class SettingDescriptors extends BaseTest {
 
 		for (double conf : confidences){
 			System.out.println("Confidence: " + conf + 
-					", interval (normal): " + regResult.getIntervals().get(conf).getInterval());
+					", prediction interval: " + regResult.getIntervals().get(conf).getInterval() + 
+					", capped prediction interval: " + regResult.getInterval(conf).getCappedInterval());
 		}
 
 	}

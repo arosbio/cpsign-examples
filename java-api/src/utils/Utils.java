@@ -1,17 +1,23 @@
 package utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
 import com.arosbio.auth.InvalidLicenseException;
+import com.arosbio.io.UriUtils;
 import com.arosbio.modeling.CPSignFactory;
 
 public class Utils {
 
 	public static CPSignFactory getFactory() {
 		try {
-			return getFactory(getURI(Config.getProperties().getProperty("license.standard")));
-		} catch ( InvalidLicenseException e) {
+			return getFactory(
+					new File(UriUtils.resolvePath(
+							Config.getProperties().getProperty("license.standard")
+							)).toURI());
+		} catch ( Exception e ) {
+			System.err.println("Failed validating the license to run test examples");
 			Utils.writeErrAndExit(e.getMessage());
 			return null; // never happening
 		}
@@ -33,7 +39,4 @@ public class Utils {
 		System.exit(1);
 	}
 	
-	public static URI getURI(String path) {
-		return null;
-	}
 }

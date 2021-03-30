@@ -1,8 +1,11 @@
 package utils;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
+
+import com.arosbio.io.UriUtils;
 
 public class Config {
 
@@ -37,12 +40,18 @@ public class Config {
 		} catch (Exception e) {return def;}
 	}
 
-	public static URI getURI(String property, URI def) {
+	public static File getFile(String property, File def) {
 		try {
-			return Utils.getURI(getProperties().getProperty(property));
+			return new File(UriUtils.resolvePath(getProperties().getProperty(property)));
 		} catch(Exception e) {
 			return def;
 		}
+	}
+	
+	public static URI getURI(String property, URI def) {
+		try {
+			return getFile(property,null).toURI();
+		} catch (Exception e) {return def;}
 	}
 
 	public static String getProperty(String property) {

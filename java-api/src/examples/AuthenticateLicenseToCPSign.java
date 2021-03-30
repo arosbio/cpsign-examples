@@ -11,14 +11,13 @@ import com.arosbio.commons.auth.CPSignLicense;
 import com.arosbio.modeling.CPSignFactory;
 
 import utils.Config;
-import utils.Utils;
 
 public class AuthenticateLicenseToCPSign {
 
 	@Test
 	public void authenticate() throws InvalidLicenseException, IOException {
 		// Pick the license that you have, according to the config.properties file
-		URI licenseURI = Utils.getURI(Config.getProperties().getProperty("license.standard"));
+		URI licenseURI = Config.getURI("license.standard", null);
 		
 		// Authentication is done by initializing the CPSignFactory. This can be done either directly: 
 		@SuppressWarnings("unused")

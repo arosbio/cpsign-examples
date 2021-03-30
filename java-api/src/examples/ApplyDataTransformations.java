@@ -27,6 +27,11 @@ import utils.Config;
 public class ApplyDataTransformations extends BaseTest {
 
 
+	/*
+	 * Note: this tests (for this particular data set) takes roughly 13-15 minutes to run
+	 * as it requires CDK descriptors that are time consuming to compute. In real world scenarios,
+	 * put some effort into picking the appropriate descriptors 
+	 */
 	@Test
 	public void evaluateTransformations() throws IllegalAccessException, InvalidLicenseException, IOException {
 
@@ -53,14 +58,14 @@ public class ApplyDataTransformations extends BaseTest {
 
 		// Load data
 		signPredictor.fromMolsIterator(new SDFile(Config.getURI("regression.dataset", null)).getIterator(), 
-				Config.getProperty("regression.dataset.endpoint"));
+				Config.getProperty("regression.endpoint"));
 
 		System.out.println("Total number of features: " + signPredictor.getFeatureNames(false).size());
 
 		// Some of them has issues - so check for features with missing values
 		signPredictor.getProblem().apply(new DropMissingDataSelecter());
 
-		System.out.println("Num features after inital filtration: " + signPredictor.getFeatureNames(false).size());
+		System.out.println("Num features after inital missing-data-filtration: " + signPredictor.getFeatureNames(false).size());
 
 		// Evaluate this data set - note: not scaled or performed any feature-selection
 		TestRunner tester = new TestRunner(new KFoldCV());

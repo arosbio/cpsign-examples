@@ -42,7 +42,7 @@ public class ManipulatingNumericalDatasets extends BaseTest {
 		Assert.assertEquals(dataset,copiedDataset);
 		
 		// You can transform the Sparse (default) implementation to a Dense representation
-		Dataset copyDense = new MakeDenseTransformer().transform(copiedDataset);
+		Dataset copyDense = new MakeDenseTransformer().fitAndTransform(copiedDataset);
 		
 		// Now the normal equals does not work
 		Assert.assertNotEquals(dataset,copyDense);

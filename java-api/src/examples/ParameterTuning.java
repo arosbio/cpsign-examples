@@ -1,7 +1,6 @@
 package examples;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,16 +30,16 @@ import utils.SysOutWriter;
 public class ParameterTuning extends BaseTest {
 
 
-	private List<Double> betaValuesToTry = Arrays.asList(0.0, 0.25, 0.5);
-
-
+	/*
+	 * Note: this test is rather slow as it computes an exhaustive grid search of parameters. 
+	 */
 	@Test
 	public void regression() throws IllegalArgumentException, InvalidLicenseException, IOException, GridSearchException {
 		
 		
 		// Initialize your predictor, non-conformity measure (NCM) and scoring algorithm(s)
 		ACPRegression predictor = factory.createACPRegression(
-				factory.createAbsDifferenceNCM(factory.createLinearSVR()), 
+				factory.createLogNormalizedNCM(factory.createLinearSVR(),0.01), 
 				new RandomSampling(Config.getInt("modeling.sampling.num.models", 10), Config.getDouble("modeling.sampling.calib.ratio",0.2)));
 		
 		// You can list all available parameters that can be tuned
@@ -62,9 +61,9 @@ public class ParameterTuning extends BaseTest {
 
 		// Set your custom parameter regions
 		Map<String,List<Object>> paramGrid = new HashMap<>();
-		paramGrid.put("COST", Arrays.asList(1, 10, 100));
-		// Grid search beta only if NCM LogNormalizedNCM is set! 
-		paramGrid.put("NCM_BETA", new ArrayList<>(betaValuesToTry)); // if LogNormalizedNonconfMeasureRegression is not set, the grid search will not be done even if this list is set
+		paramGrid.put("cost", Arrays.asList(1, 10, 100));
+		// Grid search beta only if NCM uses it! 
+		paramGrid.put("ncmBeta", Arrays.asList(0.0, 0.25, 0.5)); // if LogNormalizedNonconfMeasureRegression is not set, the grid search will not be done even if this list is set
 		// Set a Writer to write all output to (otherwise only give you the 'n' optimal results)
 		// Here simply write to system out but would likely be to a file
 		gs.setLoggingWriter(new SysOutWriter());
@@ -74,7 +73,7 @@ public class ParameterTuning extends BaseTest {
 
 		// Load data
 		signPredictor.fromMolsIterator(new SDFile(Config.getURI("regression.dataset",null)).getIterator(), 
-				Config.getProperty("regression.target"));
+				Config.getProperty("regression.endpoint"));
 
 		// Start the Grid Search
 		GridSearchResult res = gs.search(signPredictor, 
