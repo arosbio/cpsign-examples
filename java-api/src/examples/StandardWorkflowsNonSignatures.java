@@ -1,25 +1,23 @@
 package examples;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.junit.Test;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 
-import com.arosbio.chem.io.in.SDFile;
-import com.arosbio.modeling.cheminf.NamedLabels;
-import com.arosbio.modeling.cheminf.SignaturesCPClassification;
-import com.arosbio.modeling.cheminf.SignaturesCPRegression;
-import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
-import com.arosbio.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
+import com.arosbio.modeling.data.DataRecord;
+import com.arosbio.modeling.data.Dataset;
+import com.arosbio.modeling.data.Problem;
+import com.arosbio.modeling.io.ModelCreator;
+import com.arosbio.modeling.io.ModelInfo;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.algorithms.ScoringClassifier;
+import com.arosbio.modeling.ml.algorithms.svm.EpsilonSVR;
 import com.arosbio.modeling.ml.algorithms.svm.LinearSVC;
-import com.arosbio.modeling.ml.algorithms.svm.LinearSVR;
 import com.arosbio.modeling.ml.algorithms.svm.PlattScaledC_SVC;
 import com.arosbio.modeling.ml.algorithms.svm.SVC;
 import com.arosbio.modeling.ml.algorithms.svm.SVR;
@@ -35,11 +33,18 @@ import com.arosbio.modeling.ml.cp.tcp.TCPClassification;
 import com.arosbio.modeling.ml.ds_splitting.FoldedSampling;
 import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
 import com.arosbio.modeling.ml.vap.avap.AVAPClassification;
+import com.arosbio.modeling.ml.vap.avap.AVAPClassificationResult;
 
 import utils.BaseTest;
 import utils.Config;
 
-public class StandardWorkflows extends BaseTest {
+/*
+ * A key thing to note for using non-signatures descriptor data is that the SVM parameters
+ * have been set to the sweet-spot for signatures-based data. This could be far from the ideal
+ * parameters for other data, so using parameter tuning could have large impact on the predictive
+ * performance!
+ */
+public class StandardWorkflowsNonSignatures extends BaseTest {
 
 	@SuppressWarnings("unused")
 	@Test
@@ -71,55 +76,49 @@ public class StandardWorkflows extends BaseTest {
 		ACPClassification icpProbability = new ACPClassification(ncmProbability, new RandomSampling(1, .2));
 
 		// The ACP classifier can now be used for training / predicting plain records - with no molecular data
-		// e.g. icp.train(problem); icp.predict(example);
 
-		// But CPSign is intended mainly for molecular data records
-		// The predictor is then wrapped in a SignaturesXX implementation of the correct class, e.g.:
-		SignaturesCPClassification moleculePredictor = factory.createSignaturesCPClassification(icp, 1, 3);
-		// This creates a wrapper that directly deals with molecular data, by computing descriptors etc.
-		// This default instantiation uses the signatures descriptor with height 1-3
-		// How other descriptors are used is exemplified in SettingDescriptors.java 
+		// Loading data can be from LIBSVM data format
+		Dataset dataset = null;
+		URI uri = Config.getURI("numerical.classification", null);
+		try (InputStream stream = uri.toURL().openStream()){
+			dataset = Dataset.fromLIBSVMFormat(stream);
+		}
+		// The Dataset class contains a single design matrix and the corresponding labels
+		// The 'base object' for datasets is the Problem class, where data can be earmarked 
+		// for using exclusively as calibration or proper training data.
+		// The 'normal' dataset is used for both calibration and proper training data - depending on 
+		// how it is sampled  
+		Problem data = new Problem();
+		data.setDataset(dataset);
+		// To set some records to only be used for calibration, use:
+		// data.setCalibrationExclusiveDataset(calibrationExclusive);
+		// To set some records to only be used for fitting the underlying model, use: 
+		// data.setModelingExclusiveDataset(modelingExclusive);
 
+		// take out the first record for testing
+		DataRecord testRecord = dataset.getRecords().remove(0);
 
-		///// LOADING DATA AND COMPUTING DESCRIPTORS
+		// Training is then performed using the dataset
+		icp.train(data);
 
-		// Loading data can be used with e.g. CDK classes or any of the convenience stuff supplied with CPSign
-		// e.g. IteratingSDFReader in CDK, or with CPSign wrapper class:
-		SDFile sdf = new SDFile(Config.getURI("classification.dataset", null));
+		// Predict the record not used in the training
+		Map<Integer,Double> prediction = icp.predict(testRecord.getFeatures());
 
-		// The fromMolsIterator takes molecules from an iterator and computes the descriptors
-		// Gradually building up the data set
-		moleculePredictor.fromMolsIterator(
-				sdf.getIterator(), 
-				Config.getProperty("classification.endpoint"),
-				new NamedLabels(Config.getProperty("classification.labels").split("[\\s,]")));
+		System.out.println("prediction for test-record of true class {"+(int)testRecord.getLabel()+"}: " + prediction);
 
-		// Then train the predictor, using the computed records. Note that the records are stored
-		// in the SignatureXX-wrapper object
-		moleculePredictor.train();
-		// internally this is the same thing as the following:
-		// acp.train(acpClassification.getProblem());
-
-		// Predictions are made directly on IAtomContainers, applying any potential data-transformations
-		// prior to predictions
-		IAtomContainer testMolecule = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.DEFAULT_SMILES);
-		Map<String,Double> prediction = moleculePredictor.predictMondrian(testMolecule);
-
-		System.out.println("prediction for test-molecule: " + prediction);
-		
-		// Saving the model is straight forward as well, using the wrapper method:
+		// Saving the model is performed using the ModelCreator class 
 		File tmpModel = File.createTempFile("classification-model", "jar");
 		tmpModel.deleteOnExit();
-		moleculePredictor.save(tmpModel);
-		
+		ModelCreator.generateTrainedModel(icp, new ModelInfo("cp-classifier"), tmpModel, null);
+
 		// Loading is done using the ModelLoader class
-		SignaturesCPClassification loadedPredictor = (SignaturesCPClassification) ModelLoader.loadModel(tmpModel.toURI(), null);
-		
+		ACPClassification loadedPredictor = (ACPClassification) ModelLoader.loadModel(tmpModel.toURI(), null);
+
 		// Predicting with the loaded predictor should yield the exact same result
 		// (unless some randomness is part of the predictor)
-		Map<String,Double> prediction2 = loadedPredictor.predictMondrian(testMolecule);
-		System.out.println("prediction for test-molecule (loaded): " + prediction);
-		
+		Map<Integer,Double> prediction2 = loadedPredictor.predict(testRecord.getFeatures());
+		System.out.println("prediction for test-record of true class {"+(int)testRecord.getLabel()+"} (loaded): " + prediction);
+
 	}
 
 	@Test
@@ -127,34 +126,46 @@ public class StandardWorkflows extends BaseTest {
 		// Just as for Conformal Classifiers in the example above, instantiation can be 
 		// performed using either the CPSignFactory class or by the custructors of the 
 		// used classes
-		SVR linearSVR = new LinearSVR();
+		SVR linearSVR = new EpsilonSVR();
 		NCMRegression ncm = new NormalizedNCM(linearSVR);
 
 		// Only one Conformal regression class exists, generating 
 		// either an ICP, ACP or CCP regression predictor
 		ACPRegression icp = new ACPRegression(ncm, new RandomSampling(1, 0.25));
 
-		// Wrap in the Signatures wrapper class 
-		SignaturesCPRegression moleculePredictor = new SignaturesCPRegression(icp);
+		// Loading data can be from LIBSVM data format
+		Dataset dataset = null;
+		URI uri = Config.getURI("numerical.regression", null);
+		try (InputStream stream = uri.toURL().openStream()){
+			dataset = Dataset.fromLIBSVMFormat(stream);
+		}
+		// The Dataset class contains a single design matrix and the corresponding labels
+		// The 'base object' for datasets is the Problem class, where data can be earmarked 
+		// for using exclusively as calibration or proper training data.
+		// The 'normal' dataset is used for both calibration and proper training data - depending on 
+		// how it is sampled  
+		Problem data = new Problem();
+		data.setDataset(dataset);
+		// To set some records to only be used for calibration, use:
+		// data.setCalibrationExclusiveDataset(calibrationExclusive);
+		// To set some records to only be used for fitting the underlying model, use: 
+		// data.setModelingExclusiveDataset(modelingExclusive);
 
-		// Load data
-		SDFile sdf = new SDFile(Config.getURI("regression.dataset", null));
-		moleculePredictor.fromMolsIterator(
-				sdf.getIterator(), 
-				Config.getProperty("regression.endpoint"));
+		// take out the first record for testing
+		DataRecord testRecord = dataset.getRecords().remove(0);
 
-		moleculePredictor.train();
+		// Training is then performed using the dataset
+		icp.train(data);
 
-		// Predict the test molecule - requiring one or more confidences in the prediction(s)
-		IAtomContainer testMolecule = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.DEFAULT_SMILES);
+		// Regression requires one or more confidence values for the predictor
 		double confidence = Config.getDouble("modeling.conf", .8);
-		CPRegressionPrediction prediction = moleculePredictor.predict(testMolecule, confidence);
+		CPRegressionPrediction prediction = icp.predict(testRecord.getFeatures(), confidence);
 
 		// The prediction output has more information than for the classifier above, containing 
 		// The point-prediction (aggregated for all ICP-models) and the prediction 
 		// for each confidence level, both the predicted interval and the capped interval based on 
 		// mininum and maximum encountered value in the training set. 
-		System.out.println("prediction for test-molecule:\nmidpoint: " + prediction.getY_hat() +
+		System.out.println("prediction for test-record with true label {"+testRecord.getLabel()+"}:\nmidpoint: " + prediction.getY_hat() +
 				"\ninterval: " + prediction.getInterval(confidence).getInterval());
 
 		// Saving and loading the predictor is done in the same way as for the classifier above 
@@ -168,32 +179,39 @@ public class StandardWorkflows extends BaseTest {
 		ScoringClassifier classifier = new LinearSVC();
 		AVAPClassification cvap = new AVAPClassification(classifier, new FoldedSampling(10));
 
-		SignaturesVAPClassification moleculePredictor = new SignaturesVAPClassification(cvap);
+		Dataset dataset = null;
+		URI uri = Config.getURI("numerical.classification", null);
+		try (InputStream stream = uri.toURL().openStream()){
+			dataset = Dataset.fromLIBSVMFormat(stream);
+		}
+		// The Dataset class contains a single design matrix and the corresponding labels
+		// The 'base object' for datasets is the Problem class, where data can be earmarked 
+		// for using exclusively as calibration or proper training data.
+		// The 'normal' dataset is used for both calibration and proper training data - depending on 
+		// how it is sampled  
+		Problem data = new Problem();
+		data.setDataset(dataset);
+		// To set some records to only be used for calibration, use:
+		// data.setCalibrationExclusiveDataset(calibrationExclusive);
+		// To set some records to only be used for fitting the underlying model, use: 
+		// data.setModelingExclusiveDataset(modelingExclusive);
 
-		// Loading data and training is identical to the conformal predictor wrappers above
+		// take out the first record for testing
+		DataRecord testRecord = dataset.getRecords().remove(0);
 
-		SDFile sdf = new SDFile(Config.getURI("classification.dataset", null));
-
-		moleculePredictor.fromMolsIterator(
-				sdf.getIterator(), 
-				Config.getProperty("classification.endpoint"),
-				new NamedLabels(Config.getProperty("classification.labels").split("[\\s,]")));
-
-		moleculePredictor.train();
-
-		IAtomContainer testMolecule = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.DEFAULT_SMILES);
+		// Training is then performed using the dataset
+		cvap.train(data);
+		
 		// Predictions can either be made for probabilities only
-		Map<String,Double> prediction = moleculePredictor.predictProbabilities(testMolecule);
-		// Or to get all available info - i.e. also the 
-		SignaturesCVAPResult fullPrediction = moleculePredictor.predict(testMolecule);
+		AVAPClassificationResult prediction = cvap.predict(testRecord.getFeatures());
 
-		System.out.println("probabilities for test-molecule: " + prediction);
-		System.out.println("full prediction for test-molecule:\nprobabilities: " + fullPrediction.getProbabilties() + 
-				"\nmean width: " + fullPrediction.getMeanIntervalWidth()+
-				"\nmedian width: " + fullPrediction.getMedianIntervalWidth());
+		System.out.println("probabilities for test-record of true class {"+testRecord.getLabel()+"}: " + prediction.getProbabilities());
+		System.out.println("full prediction for test-molecule:" + 
+				"\nmean width: " + prediction.getMeanIntervalWidth()+
+				"\nmedian width: " + prediction.getMedianIntervalWidth());
 		// The 'interval width' carries intrinsic information about how much the prediction can be trusted.
 		// The width refers to how much the prediction differed between the two assumed labels
-		
+
 		// Saving and loading the predictor is done in the same way as for the classifier above
 	}
 

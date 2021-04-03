@@ -10,6 +10,8 @@ import examples.GeneratePredictionImages;
 import examples.ManipulatingNumericalDatasets;
 import examples.ParameterTuning;
 import examples.SettingDescriptors;
+import examples.StandardWorkflows;
+import examples.StandardWorkflowsNonSignatures;
 
 @RunWith(Suite.class)
 @SuiteClasses({
@@ -18,7 +20,9 @@ import examples.SettingDescriptors;
 	GeneratePredictionImages.class,
 	ManipulatingNumericalDatasets.class,
 	ParameterTuning.class,
-	SettingDescriptors.class
+	SettingDescriptors.class,
+	StandardWorkflows.class,
+	StandardWorkflowsNonSignatures.class
 })
 public class TestSuite {
 
