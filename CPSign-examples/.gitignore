@@ -1,5 +1,0 @@
-/bin/
-lib/cpsign-*.jar
-**/resources/licenses/*.license
-cpsign*.log
-output/
