@@ -1,0 +1,23 @@
+crossvalidate
+
+# The model we created just now
+--model-in
+models/precomp.jar
+
+# Predictor args
+--predictor-type
+acp-classification
+-ss
+folded_stratified:numSamples=10
+
+# Test strategy
+--cv-folds
+10
+-cp
+0:1:0.01
+--result-format
+csv
+-ro
+results/cv_output.csv
+--license
+../resources/cpsign-standard.license

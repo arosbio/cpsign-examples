@@ -1,0 +1,31 @@
+predict
+--model-in
+models/trained.jar
+--smiles
+CC(=O)OC1=CC=CC=C1C(=O)O
+-cg
+--license
+../resources/cpsign-standard.license
+
+# Gradient image params
+-gi
+-ih
+1000
+-iw
+1000
+--atom-numbers
+--atom-number-color
+black
+--color-legend
+--color-scheme
+forestgreen:rgb(15,16,100):#730707
+
+# Significant signature params
+-si
+-hc
+rgb(15, 16, 100)
+-sh
+1000
+-sw
+1000
+--signature-color-legend

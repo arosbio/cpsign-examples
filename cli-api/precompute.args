@@ -1,0 +1,25 @@
+# Program name
+precompute
+
+# Args
+--model-type
+classification
+--train-data
+sdf
+../resources/bursi_classification.sdf.gz
+--endpoint
+Ames test categorisation
+--labels
+mutagen nonmutagen
+--descriptors
+signatures:1:3
+TPSADescriptor:checkAromaticity=true
+--transformations
+voting
+--model-name
+precomputed classification dataset
+--model-out
+models/precomp.jar
+--license
+../resources/cpsign-standard.license
+
