@@ -13,5 +13,8 @@
 *.tar.gz
 *.rar
 
-# licenses
-*.license
+# output stuff
+output/
+
+# Mac meta files
+.DS_Store

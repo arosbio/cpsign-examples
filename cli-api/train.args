@@ -1,20 +1,19 @@
 train
---model-in
-models/precomp.jar
+--data-set
+output/precomp.jar
+
 # We use the same data for computing percentiles
 --percentiles-data
 sdf
 ../resources/bursi_classification.sdf.gz
-# But in interest of time, we use fewer records than default
+# But in interest of time, we use only a fewer records
 --percentiles
-100
+50
 --predictor-type
 acp-classification
 -ss
 folded_stratified:numSamples=10
 --model-out
-models/trained.jar
+output/trained.jar
 --model-name
 ames-mutagenicity-model
---license
-../resources/cpsign-standard.license

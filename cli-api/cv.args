@@ -1,8 +1,7 @@
 crossvalidate
 
 # The model we created just now
---model-in
-models/precomp.jar
+--data-set output/precomp.jar
 
 # Predictor args
 --predictor-type
@@ -14,10 +13,8 @@ folded_stratified:numSamples=10
 --cv-folds
 10
 -cp
-0:1:0.01
---result-format
-csv
--ro
-results/cv_output.csv
---license
-../resources/cpsign-standard.license
+0.01:1:0.01
+
+# Where to print output
+--result-format csv
+-ro output/cv_output.csv

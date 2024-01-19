@@ -1,31 +1,27 @@
 predict
---model-in
-models/trained.jar
---smiles
-CC(=O)OC1=CC=CC=C1C(=O)O
--cg
---license
-../resources/cpsign-standard.license
+
+# Specify input
+--model output/trained.jar
+--smiles CC(=O)OC1=CC=CC=C1C(=O)O
 
 # Gradient image params
 -gi
--ih
-1000
--iw
-1000
---atom-numbers
---atom-number-color
-black
---color-legend
---color-scheme
-forestgreen:rgb(15,16,100):#730707
+-gi:o output/gradient-image.png
+# Specify image height (-ih) and width (-iw) in pixels
+-gi:h 1000
+-gi:w 1000
+# Print atom numbers in black
+--gi:atom-numbers black
+# Add a color legend in the image
+--gi:legend
+# Specify the color-scheme, can be a mix of common color names, rgb values and hex-codes
+--gi:color-scheme forestgreen:rgb(15,16,100):#730707
 
 # Significant signature params
 -si
--hc
-rgb(15, 16, 100)
--sh
-1000
--sw
-1000
---signature-color-legend
+-si:o output/significant-signature.png
+# Specify what color to highlight the significant signature with
+--si:color rgb(15,16,100)
+-si:h 1000
+-si:w 1000
+--si:legend
