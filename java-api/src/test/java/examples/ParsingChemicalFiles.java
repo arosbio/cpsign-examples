@@ -14,7 +14,6 @@ import com.arosbio.chem.io.in.ChemFileIterator;
 import com.arosbio.chem.io.in.SDFile;
 import com.arosbio.commons.CollectionUtils;
 
-import utils.BaseTest;
 import utils.Config;
 
 /*
@@ -25,7 +24,7 @@ import utils.Config;
  * based on the commons-csv project (https://commons.apache.org/proper/commons-csv/), 
  * allowing it to read several flavors of CSV
  */
-public class ParsingChemicalFiles extends BaseTest {
+public class ParsingChemicalFiles {
 
 	@Test
 	public void loadSDF() throws IOException {
@@ -53,9 +52,9 @@ public class ParsingChemicalFiles extends BaseTest {
 		System.out.println("Number of molecules in CSV file: " + countInFile(csv));
 		
 		// Or the CSVChemFileReader class with fully customizable parameters
-		try(FileReader reader =new FileReader(dataset.getPath());){
+		try(FileReader reader = new FileReader(dataset.getPath());){
 			CSVChemFileReader molIterator = new CSVChemFileReader(
-					CSVFormat.DEFAULT.withDelimiter(';').withFirstRecordAsHeader(), 
+					CSVFormat.DEFAULT.builder().setDelimiter(';').setSkipHeaderRecord(true).build(), 
 					reader);
 			
 			int count = CollectionUtils.count(molIterator);

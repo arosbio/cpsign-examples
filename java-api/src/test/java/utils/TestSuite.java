@@ -5,24 +5,22 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import examples.ApplyDataTransformations;
-import examples.AuthenticateLicenseToCPSign;
 import examples.GeneratePredictionImages;
 import examples.ManipulatingNumericalDatasets;
 import examples.ParameterTuning;
 import examples.SettingDescriptors;
 import examples.StandardWorkflows;
-import examples.StandardWorkflowsNonSignatures;
+import examples.StandardWorkflowsNonChem;
 
 @RunWith(Suite.class)
 @SuiteClasses({
 	ApplyDataTransformations.class,
-	AuthenticateLicenseToCPSign.class,
 	GeneratePredictionImages.class,
 	ManipulatingNumericalDatasets.class,
 	ParameterTuning.class,
 	SettingDescriptors.class,
 	StandardWorkflows.class,
-	StandardWorkflowsNonSignatures.class
+	StandardWorkflowsNonChem.class
 })
 public class TestSuite {
 

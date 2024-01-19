@@ -11,10 +11,16 @@ public class Config {
 
 	public static final String DEFAULT_SMILES = "CCCNCC(=O)NC1=CC(=CC=C1)S(=O)(=O)NC2=NCCCCC2";
 
+	private static Properties fetched;
+
 	public static Properties getProperties() {
-		try (InputStream propsStream = new Config().getClass().getClassLoader().getResourceAsStream("resources/config.properties");){
+		if (fetched != null)
+			return fetched;
+			
+		try (InputStream propsStream = new Config().getClass().getClassLoader().getResourceAsStream("config.properties");){
 			Properties props = new Properties();
 			props.load(propsStream);
+			fetched = props;
 			return props;
 		} catch (Exception e) {
 			System.err.println("Failed setting up environment correctly - cannot run example(s)\nPlease look over the config.properties to make sure everything is OK");

@@ -3,6 +3,7 @@ package examples;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Test;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -10,18 +11,19 @@ import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesParser;
 
 import com.arosbio.chem.io.in.SDFile;
-import com.arosbio.modeling.cheminf.SignaturesCPRegression;
-import com.arosbio.modeling.cheminf.descriptors.Descriptor;
-import com.arosbio.modeling.cheminf.descriptors.DescriptorFactory;
-import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
-import com.arosbio.modeling.ml.cp.acp.ACPRegression;
-import com.arosbio.modeling.ml.ds_splitting.RandomSampling;
+import com.arosbio.cheminf.ChemCPRegressor;
+import com.arosbio.cheminf.descriptors.ChemDescriptor;
+import com.arosbio.cheminf.descriptors.DescriptorFactory;
+import com.arosbio.cheminf.io.ModelSerializer;
+import com.arosbio.ml.algorithms.svm.LinearSVR;
+import com.arosbio.ml.cp.CPRegressionPrediction;
+import com.arosbio.ml.cp.acp.ACPRegressor;
+import com.arosbio.ml.cp.nonconf.regression.LogNormalizedNCM;
+import com.arosbio.ml.sampling.RandomSampling;
 
-import utils.BaseTest;
 import utils.Config;
 
-public class SettingDescriptors extends BaseTest {
+public class SettingDescriptors {
 
 	/*
 	 * Note: this tests (for this particular data set) takes roughly 8-10 minutes to run
@@ -32,23 +34,23 @@ public class SettingDescriptors extends BaseTest {
 	public void descriptors() throws Exception {
 
 		// Chose your predictor, NCM and scoring algorithm
-		ACPRegression predictor = factory.createACPRegression(
-				factory.createLogNormalizedNCM(factory.createLinearSVR(), null, 0.1), 
+		ACPRegressor predictor = new ACPRegressor(new LogNormalizedNCM(new LinearSVR()),
 				new RandomSampling(Config.getInt("modeling.sampling.num.models",10), Config.getDouble("modeling.sampling.calib.ratio",0.2)));
 
 		// Wrap the predictor in Signatures-wrapper
-		SignaturesCPRegression signPredictor = factory.createSignaturesCPRegression(predictor, 1, 3);
+		ChemCPRegressor chemPredictor = new ChemCPRegressor(predictor);
 
 		// This will by default use the signatures generator with start height 1 and end height 3,
 		// This can now be changed!
 
 		// List all available descriptors 
-		for (Descriptor d : DescriptorFactory.getInstance().getDescriptorsList())
+		System.out.println("List of all available chemical descriptors:");
+		for (ChemDescriptor d : DescriptorFactory.getInstance().getDescriptorsList())
 			System.out.println(d);
 
 		// Use a set of CDK descriptors instead
-		List<Descriptor> desc = DescriptorFactory.getInstance().getCDKDescriptorsNo3D().subList(0, 10);
-		signPredictor.getProblem().setDescriptors(desc);
+		List<ChemDescriptor> desc = DescriptorFactory.getCDKDescriptorsNo3D().subList(0, 10);
+		chemPredictor.getDataset().setDescriptors(desc);
 		
 		/* 
 		 * Note that when using other descriptors apart from the Signatures Descriptor
@@ -57,19 +59,19 @@ public class SettingDescriptors extends BaseTest {
 		 */
 
 		// Load data, train and save model
-		signPredictor.fromMolsIterator(new SDFile(Config.getURI("regression.dataset", null)).getIterator(), 
+		chemPredictor.addRecords(new SDFile(Config.getURI("regression.dataset", null)).getIterator(), 
 				Config.getProperty("regression.endpoint"));
 
 		// Train the aggregated ICPs
-		signPredictor.train();
+		chemPredictor.train();
 
 		// Save models to skip train again
 		File tmpModel = File.createTempFile("regression-model", ".jar");
 		tmpModel.deleteOnExit();
-		signPredictor.save(tmpModel);
+		ModelSerializer.saveModel(chemPredictor, tmpModel, null);
 
 		// Load it back
-		SignaturesCPRegression loaded = (SignaturesCPRegression) ModelLoader.loadModel(tmpModel.toURI(), null);
+		ChemCPRegressor loaded = (ChemCPRegressor) ModelSerializer.loadChemPredictor(tmpModel.toURI(), null);
 
 		// Predict a new example
 		IAtomContainer testMol = new SmilesParser(SilentChemObjectBuilder.getInstance()).parseSmiles(Config.DEFAULT_SMILES);
@@ -77,9 +79,8 @@ public class SettingDescriptors extends BaseTest {
 		CPRegressionPrediction regResult = loaded.predict(testMol, confidences);
 
 		for (double conf : confidences){
-			System.out.println("Confidence: " + conf + 
-					", prediction interval: " + regResult.getIntervals().get(conf).getInterval() + 
-					", capped prediction interval: " + regResult.getInterval(conf).getCappedInterval());
+			System.out.printf(Locale.ENGLISH,"Confidence: %.3f, prediction interval: %s, capped prediction interval: %s%n",
+				conf, regResult.getIntervals().get(conf).getInterval(), regResult.getInterval(conf).getCappedInterval());
 		}
 
 	}
