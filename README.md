@@ -3,10 +3,18 @@
 This repo is meant to give some basic examples on how to get up and running with [CPSign](https://github.com/arosbio/cpsign) using the Java API. For more information we also refer to [CPSign readthedocs](https://cpsign.readthedocs.io/en/latest/). It now also includes a basic tutorial on using the CLI found at [CLI demo](cli-api/demo.md).
 
 ## Currently supported versions
-- 2.0.0-rc7 
-- 1.4.1 : Tag v1.4.1, HEAD of Master branch
-- 1.2.0 : Tag v1.2.0
-- 1.0.0 : Tag v1.0.0
+
+The mapping of CPSign version to Tag in this repository should be identical (except for an added prefix `v`). Not all versions of CPSign has updated examples and currently the following versions of CPSign have working examples:
+
+|CPSign version | Tag |
+|---|---|
+|2.0.0-rc7|v2.0.0-rc7|
+|1.4.1|v1.4.1|
+|1.2.0|v1.2.0|
+|1.0.0|v1.0.0|
+
+Note that the API has not changed drastically, so these should suffice to get you up and running for most versions of CPSign.
+
 
 ## Requirements
 To run these examples on your own computer you need the following:
