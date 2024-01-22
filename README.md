@@ -1,34 +1,33 @@
-# CPSign API USAGE GUIDE #
+# CPSign API USAGE GUIDE 
 
-This repo is meant to serve as a basics for how to get up and running with **CPSign** using the API.
+This repo is meant to give some basic examples on how to get up and running with [CPSign](https://github.com/arosbio/cpsign) using the Java API. For more information we also refer to [CPSign readthedocs](https://cpsign.readthedocs.io/en/latest/). It now also includes a basic tutorial on using the CLI found at [CLI demo](cli-api/demo.md).
 
-## Current supported versions ##
+## Currently supported versions
+- 2.0.0-rc7 
 - 1.4.1 : Tag v1.4.1, HEAD of Master branch
 - 1.2.0 : Tag v1.2.0
 - 1.0.0 : Tag v1.0.0
 
-## How to set it up ##
+## Requirements
+To run these examples on your own computer you need the following:
+- Java of version 11 or newer
+- Maven for package management
 
-### 1. Download CPSign Jar-file
-Current and old versions are available at [CPSign Downloads](https://arosbio.com/cpsign/download/).
+## Examples
+All examples can be found in the [examples](java-api/src/test/java/examples/) directory:
 
-### 2. Get your license
-Contact Aros Bio to get your license, see more information at the [CPSign Documentation](https://arosbio.com/cpsign/docs/latest/sections/license.html).
+- [ApplyDataTransformations](java-api/src/test/java/examples/ApplyDataTransformations.java) : Uses CDK physicochemical descriptors and shows how to apply data transformations.
+- [GeneratePredictionImages](java-api/src/test/java/examples/GeneratePredictionImages.java) : Shows how to generate prediction images and how to customize the produced images with custom elements such as titles, boards and legends.
+- [ListAvailableServices](java-api/src/test/java/examples/ListAvailableServices.java) : Shows how to list configurable elements that are loaded using the java ServiceLoader class. These also represent classes that users themselves can extend with their own implementations.
+- [ManipulatingNumericalDatasets](java-api/src/test/java/examples/ManipulatingNumericalDatasets.java) : Shows basic data-manipulation such as shuffling and splitting data. 
+- [ParameterTuning](java-api/src/test/java/examples/ParameterTuning.java) : Show how to preform a grid search over hyper-parameters in order to tune these. 
+- [ParsingChemicalFiles](java-api/src/test/java/examples/ParsingChemicalFiles.java) : Shows how to read data from SDF and CSV files.
+- [SettingDescriptors](java-api/src/test/java/examples/SettingDescriptors.java) : Shows how to use non-default chemical descriptors, by picking from the `IMolecularDescriptor` implementations from the CDK library.
+- [StandardWorkflows](java-api/src/test/java/examples/StandardWorkflows.java) : Shows how to instantiate a predictor model, load data to use for training, train it, predict a test example and how to save the predictor model.
+- [StandardWorkflowsNonChem](java-api/src/test/java/examples/StandardWorkflowsNonChem.java) : Does the same workflow as above, but for numerical (non-chemistry) input data. 
 
-### 3. Clone/fork this repo
-If your are using git; clone or fork this repository. In Eclipse, right click and chose "Import..." -> "Git/Projects from Git" -> "Existing local repository" (or "Clone URI" and paste the URI of this repository).
+Note that this project uses the [pom.xml](java-api/pom.xml) to configure version of CPSign and other test dependencies. 
 
-Otherwise download the project as zip-file from the [downloads page](https://bitbucket.org/genettasoft/cpsign-examples/downloads). Once you have the source, import it in your editor. In Eclipse, right click and chose "Import..." -> "Existing Projects into Workspace" and in the next window chose "Select archive file" and browse to the zip-file you downloaded. Chose the project (should only be one) and press "Finish".
+## Who do I talk to?
+Do you have any further issues, refer to the [CPSign Documentation](https://cpsign.readthedocs.io/en/latest/), file an issue on [CPSign GitHub](https://github.com/arosbio/cpsign) or contact Aros Bio info@arosbio.com
 
-### 4. Add the CPSign-jar and edit
-Once set up in your IDE, there will be complaints about a missing required libraries, which is the CPSign-jar that you should have downloaded in step 1 above. The project `.classpath` refers to lib/cpsign-[version].jar, either resolve it by creating a lib-folder and adding your version of the jar-file to it (and possibly change the classpath if your version differs compared to the one used here) or simply change the classpath to point to your existing jarfile.
-The classpath also refers to JUnit 4.12 and hamcrest 1.3-core that is needed to run the "test class" found under test/RunAll.java. Either remove these references from the class path or add the missing jars for the project to compile correctly.
-
-Before you can run the project, you will have to point the Config file (src/examples/utils/Config.java) to your license(s), at least a standard license will be needed, (you might need to make changes in case you have a different license type).
-
-#### 5. Run and enjoy
-Now you should be fully set up and everything should be running without any problems.
-
-
-## Who do I talk to? ##
-Do you have any further issues, refer to the [CPSign Documentation](https://arosbio.com/cpsign/docs/) or contact Aros Bio info@arosbio.com
